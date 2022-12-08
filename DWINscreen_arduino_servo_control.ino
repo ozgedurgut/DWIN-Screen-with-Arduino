@@ -1,4 +1,4 @@
-#include <Arduino.h>                    // Arduino Kütüphanesi
+#include <Arduino.h>                  
 #include <MsTimer2.h>                   // Serial output uses timer
 #include "ServoEasing.hpp"
 
@@ -6,48 +6,48 @@ unsigned char tcount = 0;
 unsigned char Buffer[80];
 unsigned char Buffer_Len = 0;
 
-int Header_1, Header_2;                 // Veri katarını MSB ve LSB Başlık değişkenleri
+int Header_1, Header_2;                 // Include data string MSB and LSB Header variables
 unsigned char icon_on[8] =
 {
-  //Bslk_1  Bslk_2  Byte_Sysi  Yaz_kmtu  **Adres**   ---Veri---
-  0X5A,   0XA5,   0X05,      0X82,      0X30, 0X00,  0X00, 0X01
+  //header_1  header_2  Byte_Num  Write_Command  **Addres**   ---Data---
+  0X5A,         0XA5,     0X05,      0X82,        0X30, 0X00,  0X00, 0X01
 };//5A A5 05 82 3000 0001
 
-// DWIN de 0x1001 adresinde bulunan 0 indeksli iconu calistiran dizi
+
 unsigned char icon_off[8] =
 {
-  //Bslk_1  Bslk_2  Byte_Sysi  Yaz_kmtu  **Adres**   ---Veri---
-  0X5A,   0XA5,   0X05,      0X82,      0X30, 0X00,  0X00, 0X00
+  //header_1  header_2  Byte_Num  Write_Command  **Addres**   ---Data---
+  0X5A,         0XA5,      0X05,      0X82,      0X30, 0X00,  0X00, 0X00
 };
-int Address = 0;                        //                               (MSB, LSB )
-#define SW_1_Address    0x00            // Sadece LSB Adresi Ayıklanacak (0x20 0x00)
-#define SW_2_Address    0x01            // Sadece LSB Adresi Ayıklanacak (0x20 0x01)            
-#define SW_3_Address    0x02            // Sadece LSB Adresi Ayıklanacak (0x20 0x02)
-#define SW_4_Address    0x03            // Sadece LSB Adresi Ayıklanacak (0x20 0x02)
+int Address = 0;                        //                                    (MSB, LSB )
+#define SW_1_Address    0x00            // Only LSB Address Will Be Extracted (0x30 0x00)
+#define SW_2_Address    0x01            // Only LSB Address Will Be Extracted (0x30 0x01)            
+#define SW_3_Address    0x02            // Only LSB Address Will Be Extracted (0x30 0x02)
+#define SW_4_Address    0x03            // Only LSB Address Will Be Extracted (0x30 0x02)
 
-int Data = 0;                           //                               (MSB, LSB )
-#define Logic_1   0x01                  // Sadece LSB Datası Ayıklanacak (0x00 0x01)
-#define Logic_0   0x00                  // Sadece LSB Datası Ayıklanacak (0x00 0x00)
+int Data = 0;                           //                                    (MSB, LSB )
+#define Logic_1   0x01                  // Only LSB Address Will Be Extracted (0x00 0x01)
+#define Logic_0   0x00                  // Only LSB Address Will Be Extracted (0x00 0x00)
 
 
 ServoEasing Servo1;
 
 
-void Timer2Interrupt()                  // 5ms 'lik kesme ayari
+void Timer2Interrupt()                  // 5ms interrupt
 {
-  if (tcount > 0)  tcount--;            // Touch sayacını azalt
+  if (tcount > 0)  tcount--;          
 }
 
-void setup()                            // Haberlesme ve LED pini ayarlari
+void setup()                            
 {
   Serial.begin(115200);
-  Serial1.begin(115200);                 // Baud Rate ayari (DWIN ile Aynı olmalı !)
-  pinMode(4, OUTPUT);                   // 11. pini cikis olarak aya
-  pinMode(5, OUTPUT);                   // 12. pini cikis olarak aya
-  pinMode(13, OUTPUT);                   // 13. pini cikis olarak ayarla
+  Serial1.begin(115200);                 //Must be Same as DWIN !
+  pinMode(4, OUTPUT);                  
+  pinMode(5, OUTPUT);                  
+  pinMode(13, OUTPUT);                
   Servo1.attach(9, 90);
-  MsTimer2::set(5, Timer2Interrupt);    // 5ms 'lik kesme ayari
-  MsTimer2::start();                    // Timeri baslat
+  MsTimer2::set(5, Timer2Interrupt);    // 5ms interupt
+  MsTimer2::start();                    
   Servo1.setSpeed(50);
 }
 void blinkLED() {
@@ -56,31 +56,31 @@ void blinkLED() {
   digitalWrite(LED_BUILTIN, LOW);
   delay(100);
 }
-void loop()                             // Sonsuz dongu
+void loop()                           
 {
-  if (Serial1.available())               // Seri Haberleşme Kesmesi
+  if (Serial1.available())               
   {
-    Buffer[Buffer_Len] = Serial1.read(); // Okunan Byte', diziye kaydet
-    Buffer_Len++;                       // Diziyi kayıdır
-    tcount = 9;                         // Touch Sayacına 9 değerinin yükle (Çekilecek Byte sayısı)
+    Buffer[Buffer_Len] = Serial1.read(); 
+    Buffer_Len++;                      
+    tcount = 9;                         // number of bytes
 
-    Header_1 = Buffer[0];               // Başlık_MSB verisini ayıkla
-    Header_2 = Buffer[1];               // Başlık_LSB verisini ayıkla
-    Address  = Buffer[5];               // Address_LSB verisini ayıkla
-    Data     = Buffer[8];               // Data_LSB verisini ayıkla ve
+    Header_1 = Buffer[0];             
+    Header_2 = Buffer[1];               
+    Address  = Buffer[5];               
+    Data     = Buffer[8];            
   }
   else
   {
     if (tcount == 0)
     {
-      if (Header_1 == 0X5A && Header_2 == 0xA5)           // Veri basligi geldi ise
+      if (Header_1 == 0X5A && Header_2 == 0xA5)           
       {
-        switch (Address)                                  // Adresleri sorgula
+        switch (Address)                                 
         {   Servo1.setSpeed(50);  // This speed is taken if no further speed argument is given.
 
-          case SW_1_Address:                              // Switch_1 adresi geldi ise
+          case SW_1_Address:                             
             {
-              if (Data == Logic_1)   Serial1.write(icon_on, 8); // Data 1 ise LED'i yak
+              if (Data == Logic_1)   Serial1.write(icon_on, 8);
               Servo1.easeTo(0);
               // Data 0 ise LED'i sondur
               for (int i = 0; i < 15; ++i) {
@@ -89,14 +89,15 @@ void loop()                             // Sonsuz dongu
             }
             break;
 
-          case SW_2_Address:                              // Switch_2 adresi geldi ise
+          case SW_2_Address:                     
             {
-              if (Data == Logic_1)  Serial1.write(icon_off, 8);            if (Data == Logic_0)   digitalWrite(5, LOW);
+              if (Data == Logic_1)  Serial1.write(icon_off, 8);            
+              if (Data == Logic_0)   digitalWrite(5, LOW);
 
             }
             break;
 
-          case SW_3_Address:                              // Switch_2 adresi geldi ise
+          case SW_3_Address:                      
             {
               Servo1.easeTo(180);
               Serial.println("sw3");
@@ -106,7 +107,7 @@ void loop()                             // Sonsuz dongu
             }
             break;
 
-          case SW_4_Address:                              // Switch_2 adresi geldi ise
+          case SW_4_Address:                            
             {
               Servo1.easeTo(0);
               Serial.println("sw4");
@@ -117,7 +118,7 @@ void loop()                             // Sonsuz dongu
             break;
         }
 
-        Buffer_Len = 0;                                   // Bufferi Temizle
+        Buffer_Len = 0;                             //    clear buffer
       }
     }
   }
